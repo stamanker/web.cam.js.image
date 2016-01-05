@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="DEBUG">
+
+	<Appenders>
+
+		<RollingFile name="STDOUT">
+			<PatternLayout class="ch.qos.logback.classic.PatternLayout.PatternLayoutPatternLayout">
+				<Pattern>%date{ISO8601} [%thread] %-5level %logger{35} - %msg %n</Pattern>
+			</PatternLayout>
+		</RollingFile>
+
+		<!-- ************************* GLOBAL ERRORS ************************* -->
+		<RollingFile name="ERROR" fileName="${sys:catalina.home}/logs/err.log" filePattern="${sys:catalina.home}/logs/err.%i.log">
+			<ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+			<PatternLayout>
+				<Pattern>%date{ISO8601} [%thread] %-5level %class{0}.%M:%L %m%n</Pattern>
+			</PatternLayout>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="10 MB"/>
+			</Policies>
+			<DefaultRolloverStrategy max="5"/>
+		</RollingFile>
+
+		<RollingFile name="OTHER" fileName="${sys:catalina.home}/logs/other.log" filePattern="${sys:catalina.home}/logs/other.%i.log">
+			<ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+			<PatternLayout>
+				<Pattern>%date{ISO8601} [%thread] %-5level %class{0}.%M:%L %m%n</Pattern>
+			</PatternLayout>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="10 MB"/>
+			</Policies>
+			<DefaultRolloverStrategy max="5"/>
+		</RollingFile>
+
+		<RollingFile name="START" fileName="${sys:catalina.home}/logs/start.log" filePattern="${sys:catalina.home}/logs/start.%i.log">
+			<Policies>
+				<maxFileSize>10MB</maxFileSize>
+			</Policies>
+			<PatternLayout>
+				<Pattern>%date{ISO8601} [%thread] %class{0}.%M:%L %m%n</Pattern>
+			</PatternLayout>
+			<DefaultRolloverStrategy max="1"/>
+		</RollingFile>
+
+		<RollingFile name="MAIN" fileName="${sys:catalina.home}/logs/main.log" filePattern="${sys:catalina.home}/logs/main.%i.log">
+			<Policies>
+				<maxFileSize>10MB</maxFileSize>
+			</Policies>
+			<PatternLayout>
+				<Pattern>%d{dd-MM-yyyy HH:mm:ss,SSS} [%thread] %-5level %class{0}.%M:%L %m%n</Pattern>
+			</PatternLayout>
+			<DefaultRolloverStrategy max="5"/>
+		</RollingFile>
+
+	</Appenders>
+
+    <!-- ****************************************************************************** -->
+
+	<Loggers>
+		<Logger name="START"                                            additivity="false" level="INFO">
+			<AppenderRef ref="START" />
+			<AppenderRef ref="MAIN" />
+			<AppenderRef ref="STDOUT" />
+		</Logger>
+
+		<Logger name="MAIN"                                             additivity="false" level="DEBUG">
+			<AppenderRef ref="MAIN" />
+			<AppenderRef ref="ERROR" />
+			<AppenderRef ref="STDOUT" />
+		</Logger>
+
+		<Logger name="com.github.sarxos.webcam.ds.buildin.WebcamDefaultDriver"   additivity="false" level="DEBUG">
+			<AppenderRef ref="ERROR" />
+		</Logger>
+
+		<Logger name="OTHER"                                            additivity="false" level="DEBUG">
+			<AppenderRef ref="OTHER" />
+			<AppenderRef ref="ERROR" />
+		</Logger>
+
+		<Root level="DEBUG">
+		   <AppenderRef ref="OTHER" />
+		   <AppenderRef ref="ERROR" />
+		   <!--<AppenderRef ref="STDOUT" />-->
+		</Root>
+
+	</Loggers>
+
+</Configuration>
