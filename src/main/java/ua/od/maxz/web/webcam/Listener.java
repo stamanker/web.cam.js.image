@@ -5,12 +5,14 @@ import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import javax.servlet.http.HttpSessionEvent;
+import javax.servlet.http.HttpSessionListener;
 
 /**
  * User: maxz
  * Date: 28.12.2015
  */
-public class Listener implements ServletContextListener {
+public class Listener implements ServletContextListener, HttpSessionListener {
 
     private static final Logger log = LoggerFactory.getLogger(Listener.class);
 
@@ -23,5 +25,15 @@ public class Listener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         log.debug("servletContextEvent = [" + servletContextEvent + "]");
         WebCamManager.getInstance();
+    }
+
+    @Override
+    public void sessionCreated(HttpSessionEvent httpSessionEvent) {
+        log.debug("event = " + httpSessionEvent);
+    }
+
+    @Override
+    public void sessionDestroyed(HttpSessionEvent httpSessionEvent) {
+
     }
 }

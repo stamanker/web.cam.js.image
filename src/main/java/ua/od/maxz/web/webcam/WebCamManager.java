@@ -9,6 +9,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -25,9 +26,10 @@ public class WebCamManager {
     private WebcamMotionListener listener;
     private static WebCamManager INSTANCE;
 
-    public byte[] imageFromCam;
+    public byte[] imageFromCam; // synchronyzation or something required
 
     Dimension[] nonStandardResolutions = new Dimension[]{
+            new Dimension(640, 480),
             WebcamResolution.PAL.getSize(),
             WebcamResolution.HD720.getSize(),
             new Dimension(2000, 1000),
@@ -37,34 +39,33 @@ public class WebCamManager {
     public static WebCamManager getInstance() {
         if (INSTANCE == null) {
             synchronized (WebCamManager.class) {
-                INSTANCE = new WebCamManager();
+                if (INSTANCE == null) {
+                    INSTANCE = new WebCamManager();
+                }
             }
         }
         return INSTANCE;
     }
 
-    public WebCamManager() {
-        java.util.List<Webcam> webcams = Webcam.getWebcams();
-        for (Webcam wc : webcams) {
-            System.out.println("wc = " + wc);
+    private WebCamManager() {
+        List<Webcam> webcams = Webcam.getWebcams();
+        for (Webcam webcam : webcams) {
+            log.info("cam = " + webcam);
         }
-        webcam = webcams.get(1);
+        webcam = webcams.get(webcams.size()-1);
         webcam.setCustomViewSizes(nonStandardResolutions);
-//        webcam.setViewSize(WebcamResolution.HD720.getSize());
+        webcam.setViewSize(WebcamResolution.HD720.getSize());
 //        webcam.setViewSize(WebcamResolution.SVGA.getSize());
-        webcam.setViewSize(new Dimension(640, 480));
+//        webcam.setViewSize(new Dimension(640, 480));
         webcam.open();
 
         WebcamMotionDetector detector = new WebcamMotionDetector(Webcam.getDefault());
         detector.setInterval(5000); // one check per xxx ms
-        listener = new WebcamMotionListener() {
-            @Override
-            public void motionDetected(WebcamMotionEvent webcamMotionEvent) {
+        listener = webcamMotionEvent -> {
 //                takeImage();
-            }
         };
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
-        executorService.scheduleWithFixedDelay(this::takeImage, 0, 200, TimeUnit.MILLISECONDS);
+        executorService.scheduleWithFixedDelay(this::takeImage, 0, 400, TimeUnit.MILLISECONDS);
         detector.addMotionListener(listener);
         detector.start();
     }

@@ -2,14 +2,18 @@ package ua.od.maxz.web.webcam;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ua.od.maxz.web.webcam.exceptions.WCException;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Date;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * User: maxz
@@ -18,37 +22,76 @@ import java.util.Date;
 public class Web extends HttpServlet {
 
     private static final Logger log = LoggerFactory.getLogger(Web.class);
+    private static Set<String> banned = new HashSet<>(Arrays.asList(
+            "185.130.5.224", "38.89.139.16", "217.160.128.25", "123.56.108.130", "118.98.104.21",
+            "115.230.124.164", "80.82.64.68"
+        )
+    );
+
+    @Override
+    public void init() throws ServletException {
+        log.debug("...");
+        super.init();
+    }
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        log.debug("...");
+        super.init(config);
+    }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        log.info(req.getMethod() + " " + req.getRequestURI() + " from " + req.getRemoteAddr() + ", UserAgent = '" + req.getHeader("USER-AGENT"));
-        System.out.println(req.getMethod() + " " + req.getRequestURI() + " from " + req.getRemoteAddr() + ", UserAgent = '" + req.getHeader("USER-AGENT"));
+        if(!req.getRemoteAddr().equals("0:0:0:0:0:0:0:1")) {
+            log.info(req.getMethod() + " " + req.getRequestURI() + " from " + req.getRemoteAddr() + ", UserAgent = '" + req.getHeader("USER-AGENT")+"'");
+        }
+        try (ServletOutputStream outputStream = resp.getOutputStream()) {
+            checkBan(req);
+            if (req.getParameter("image") != null) {
+                byte[] imageFromCam = WebCamManager.getInstance().imageFromCam;
+                if (imageFromCam != null) {
+                    outputStream.write(imageFromCam);
+                }
+            } else {
+                // --- bad but simple
+                if (Main.password == null || !req.getSession().isNew()) {
+                    setHeaders(resp);
+                    outputStream.print(getPage());
+                } else {
+                    if (Main.password.equals(req.getParameter("pswd"))) {
+                        resp.sendRedirect("/");
+                    } else {
+                        throw new WCException(HttpServletResponse.SC_FORBIDDEN);
+                    }
+                }
+            }
+        } catch (WCException we) {
+            log.error("Error: " + we.getMessage());
+            req.getSession().invalidate();
+            resp.sendError(we.getCode(), we.getMessage());
+        } catch (Exception e) {
+            log.error("Error", e);
+        }
+    }
+
+    private void setHeaders(HttpServletResponse resp) {
         resp.addHeader("Connection", "close");
         resp.addHeader("Content-Language", "en");
         resp.addHeader("Pragma", "no-cache");
         resp.addHeader("Cache-control", "no-cache, max-age=0, must-revalidate");
-//        resp.addHeader("Last-modified", "en");
-        //ServletOutputStream outputStream = resp.getOutputStream();
-        try (ServletOutputStream outputStream = resp.getOutputStream();) {
-            if(req.getRemoteAddr().equals("185.130.5.224")) {
-                outputStream.println("banned");
-                System.out.println("BANNED: " + req.getRemoteAddr());
-            } else {
-                if (req.getParameter("image") != null) {
-                    outputStream.write(WebCamManager.getInstance().imageFromCam);
-                } else {
-                    outputStream.print(getPage());
-                }
-            }
-        } catch (Exception e) {
-            log.error("Error", e);
+    }
+
+    private void checkBan(HttpServletRequest req) throws IOException {
+        if (banned.contains(req.getRemoteAddr())) {
+            log.info("BANNED: " + req.getRemoteAddr());
+            throw new WCException(HttpServletResponse.SC_BAD_REQUEST);
         }
     }
 
     private String getPage() {
         return
         "<html>" +
-        "<head><title>webcam::</title>" +
+        "<head><meta keywords='webcam'><title>webcam::</title>" +
 //                "<meta http-equiv='refresh' content=\"1;url='/'\"/>" +
         "</head>" +
         "<body bgcolor='black'>" +

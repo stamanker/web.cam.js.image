@@ -21,7 +21,7 @@
 			<DefaultRolloverStrategy max="5"/>
 		</RollingFile>
 
-		<RollingFile name="OTHER" fileName="${sys:catalina.home}/logs/other.log" filePattern="${sys:catalina.home}/logs/other.%i.log">
+		<RollingFile name="OTHER" fileName="logs/other.log" filePattern="${sys:catalina.home}/logs/other.%i.log">
 			<ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
 			<PatternLayout>
 				<Pattern>%date{ISO8601} [%thread] %-5level %class{0}.%M:%L %m%n</Pattern>
@@ -32,7 +32,18 @@
 			<DefaultRolloverStrategy max="5"/>
 		</RollingFile>
 
-		<RollingFile name="START" fileName="${sys:catalina.home}/logs/start.log" filePattern="${sys:catalina.home}/logs/start.%i.log">
+		<RollingFile name="ACCESS" fileName="logs/access.log" filePattern="${sys:catalina.home}/logs/access.%i.log">
+			<ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+			<PatternLayout>
+				<Pattern>%date{ISO8601} [%thread] %-5level %class{0}.%M:%L %m%n</Pattern>
+			</PatternLayout>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="10 MB"/>
+			</Policies>
+			<DefaultRolloverStrategy max="5"/>
+		</RollingFile>
+
+		<RollingFile name="START" fileName="logs/start.log" filePattern="${sys:catalina.home}/logs/start.%i.log">
 			<Policies>
 				<maxFileSize>10MB</maxFileSize>
 			</Policies>
@@ -42,7 +53,7 @@
 			<DefaultRolloverStrategy max="1"/>
 		</RollingFile>
 
-		<RollingFile name="MAIN" fileName="${sys:catalina.home}/logs/main.log" filePattern="${sys:catalina.home}/logs/main.%i.log">
+		<RollingFile name="MAIN" fileName="logs/main.log" filePattern="${sys:catalina.home}/logs/main.%i.log">
 			<Policies>
 				<maxFileSize>10MB</maxFileSize>
 			</Policies>
@@ -61,6 +72,10 @@
 			<AppenderRef ref="START" />
 			<AppenderRef ref="MAIN" />
 			<AppenderRef ref="STDOUT" />
+		</Logger>
+
+		<Logger name="ACCESS"                                           additivity="false" level="INFO">
+			<AppenderRef ref="ACCESS" />
 		</Logger>
 
 		<Logger name="MAIN"                                             additivity="false" level="DEBUG">
