@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -24,8 +23,6 @@ import java.util.List;
 public class WebCamManager {
 
     private static final Logger log = LoggerFactory.getLogger(WebCamManager.class);
-    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd_HH-mm-ss");
-    public static final SimpleDateFormat DATE_FORMAT_DAY_HOUR = new SimpleDateFormat("dd_HH");
 
     private Webcam webcam;
     private WebcamMotionListener listener;
@@ -80,25 +77,23 @@ public class WebCamManager {
         try {
             BufferedImage photo = webcam.getImage();
             imageFromCam = getPicAsBytes(photo);
-            new File("pix").mkdir();
-            String subDir = "pix/" + getCurrentHour() + "/";
-            new File(subDir).mkdir();
+            File pixMainDir = new File("pix");
+            if(!pixMainDir.exists()) {
+                pixMainDir.mkdir();
+            }
+            String subDir = "pix/" + DateUtils.getCurrentHour() + "/";
+            File file = new File(subDir);
+            if(!file.exists()) {
+                file.mkdir();
+            }
             Files.write(
-                    Paths.get(subDir + getCurrentDateTime()+".jpg"),
+                    Paths.get(subDir + DateUtils.getCurrentDateTime()+".jpg"),
                     imageFromCam,
                     StandardOpenOption.CREATE_NEW, StandardOpenOption.CREATE, StandardOpenOption.WRITE
             );
         } catch (Exception e) {
-            log.error("Error", e);
+            log.error("Error: " + e.getMessage(), e);
         }
-    }
-
-    private String getCurrentHour() {
-        return DATE_FORMAT_DAY_HOUR.format(new Date());
-    }
-
-    public String getCurrentDateTime() {
-        return DATE_FORMAT.format(new Date());
     }
 
     private byte[] getPicAsBytes(BufferedImage photo) throws IOException {
