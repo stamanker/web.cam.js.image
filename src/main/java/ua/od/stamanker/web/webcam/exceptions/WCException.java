@@ -1,4 +1,4 @@
-package ua.od.maxz.web.webcam.exceptions;
+package ua.od.stamanker.web.webcam.exceptions;
 
 /**
  * User: maxz

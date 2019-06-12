@@ -6,7 +6,7 @@
 
     <groupId>ua.od.maxz</groupId>
     <artifactId>webcam</artifactId>
-    <version>0.1.00</version>
+    <version>0.1.01</version>
 
     <name>CameraAlarm</name>
     <description>descr</description>
@@ -17,7 +17,7 @@
     <properties>
         <log4j.version>2.3</log4j.version>
         <slf4j.version>1.7.12</slf4j.version>
-        <tomcat.version>8.0.24</tomcat.version>
+        <tomcat.version>9.0.21</tomcat.version>
         <project.version>1.0.00</project.version>
     </properties>
 
@@ -27,7 +27,7 @@
         <dependency>
             <groupId>com.github.sarxos</groupId>
             <artifactId>webcam-capture</artifactId>
-            <version>0.3.11</version>
+            <version>0.3.12</version>
         </dependency>
 
 
@@ -108,7 +108,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib</classpathPrefix>
-                            <mainClass>ua.od.maxz.web.webcam.Main</mainClass>
+                            <mainClass>ua.od.stamanker.web.webcam.Main</mainClass>
                         </manifest>
                         <manifestEntries>
                             <Version>${project.version}</Version>
