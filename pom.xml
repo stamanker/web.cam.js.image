@@ -4,12 +4,12 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>ua.od.maxz</groupId>
+    <groupId>ua.od.stamanker</groupId>
     <artifactId>webcam</artifactId>
     <version>0.1.01</version>
 
-    <name>CameraAlarm</name>
-    <description>descr</description>
+    <name>webcam</name>
+    <!--<description>descr</description>-->
     <!--<url></url>-->
 
     <packaging>jar</packaging>
@@ -131,7 +131,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib</classpathPrefix>
-                            <mainClass>ua.od.stamanker.web.webcam.Main</mainClass>
+                            <mainClass>ua.od.stamanker.web.webcam.Application</mainClass>
                         </manifest>
                         <manifestEntries>
                             <Version>${project.version}</Version>

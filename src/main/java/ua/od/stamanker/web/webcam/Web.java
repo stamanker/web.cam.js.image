@@ -41,7 +41,7 @@ public class Web extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         if(!req.getRemoteAddr().equals("0:0:0:0:0:0:0:1")) {
             log.info(req.getMethod() + " " + req.getRequestURI() + " from " + req.getRemoteAddr() + ", UserAgent = '" + req.getHeader("USER-AGENT")+"'");
         }
@@ -54,11 +54,11 @@ public class Web extends HttpServlet {
                 }
             } else {
                 // --- bad but simple
-                if (Main.password == null || !req.getSession().isNew()) {
+                if (Application.password == null || !req.getSession().isNew()) {
                     setHeaders(resp);
                     outputStream.print(getPage());
                 } else {
-                    if (Main.password.equals(req.getParameter("pswd"))) {
+                    if (Application.password.equals(req.getParameter("pswd"))) {
                         resp.sendRedirect("/");
                     } else {
                         throw new WCException(HttpServletResponse.SC_FORBIDDEN);

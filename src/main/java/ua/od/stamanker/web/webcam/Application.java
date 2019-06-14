@@ -11,7 +11,7 @@ import java.io.File;
  * User: maxz
  * Date: 28.12.2015
  */
-public class Main {
+public class Application {
 
     private static final Logger log = LoggerFactory.getLogger("MAIN");
     private static final Logger logStart = LoggerFactory.getLogger("START");
@@ -39,7 +39,7 @@ public class Main {
             do {
                 long freemMemory = Runtime.getRuntime().freeMemory();
                 log.info("free memory: " + String.format("%,03d", freemMemory));
-                Main.sleep1Min();
+                Application.sleep1Min();
             } while(!Thread.currentThread().isInterrupted());
         }).start();
         tomcat.getServer().await();

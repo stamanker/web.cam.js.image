@@ -68,6 +68,7 @@ public class WebCamManager {
         };
         detector.addMotionListener(listener);
         detector.start();
+
         // --- auto save picture
 //        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 //        executorService.scheduleWithFixedDelay(this::takeImage, 0, 400, TimeUnit.MILLISECONDS);

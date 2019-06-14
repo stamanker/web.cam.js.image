@@ -19,6 +19,7 @@ public class Listener implements ServletContextListener, HttpSessionListener {
     @Override
     public void contextDestroyed(ServletContextEvent servletContextEvent) {
         log.debug("servletContextEvent = [" + servletContextEvent + "]");
+        //TODO STOP LISTENER
     }
 
     @Override
