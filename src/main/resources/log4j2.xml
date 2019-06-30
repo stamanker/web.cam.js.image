@@ -10,7 +10,7 @@
 		</RollingFile>
 
 		<!-- ************************* GLOBAL ERRORS ************************* -->
-		<RollingFile name="ERROR" fileName="${sys:catalina.home}/logs/err.log" filePattern="${sys:catalina.home}/logs/err.%i.log">
+		<RollingFile name="ERROR" fileName="logs/err.log" filePattern="logs/err.%i.log">
 			<ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
 			<PatternLayout>
 				<Pattern>%date{ISO8601} [%thread] %-5level %class{0}.%M:%L %m%n</Pattern>

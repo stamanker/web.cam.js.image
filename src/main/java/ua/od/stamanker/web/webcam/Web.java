@@ -48,9 +48,12 @@ public class Web extends HttpServlet {
         try (ServletOutputStream outputStream = resp.getOutputStream()) {
             checkBan(req);
             if (req.getParameter("image") != null) {
-                byte[] imageFromCam = WebCamManager.getInstance().imageFromCam;
+                resp.addHeader("Content-type", "image/jpeg");
+                byte[] imageFromCam = WebCamManager.getInstance().image.get();
                 if (imageFromCam != null) {
                     outputStream.write(imageFromCam);
+                } else {
+                    resp.sendError(500, "no image somewhy...");
                 }
             } else {
                 // --- bad but simple
@@ -78,10 +81,11 @@ public class Web extends HttpServlet {
         resp.addHeader("Connection", "close");
         resp.addHeader("Content-Language", "en");
         resp.addHeader("Pragma", "no-cache");
+        resp.addHeader("Content-type", "text/html");
         resp.addHeader("Cache-control", "no-cache, max-age=0, must-revalidate");
     }
 
-    private void checkBan(HttpServletRequest req) throws IOException {
+    private void checkBan(HttpServletRequest req) {
         if (banned.contains(req.getRemoteAddr())) {
             log.info("BANNED: " + req.getRemoteAddr());
             throw new WCException(HttpServletResponse.SC_BAD_REQUEST);
@@ -108,7 +112,7 @@ public class Web extends HttpServlet {
         "           newImage.src = '/?image&n='+number;\n" +
         "           console.log('=' + newImage.src);" +
         "       }\n" +
-        "       setTimeout(updateImage, 500);\n" +
+        "       setTimeout(updateImage, 300);\n" +
         "   }" +
         "   updateImage();" +
         "</script>" +

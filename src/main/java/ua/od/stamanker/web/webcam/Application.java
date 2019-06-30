@@ -14,12 +14,11 @@ import java.io.File;
 public class Application {
 
     private static final Logger log = LoggerFactory.getLogger("MAIN");
-    private static final Logger logStart = LoggerFactory.getLogger("START");
 
     public static String password;
 
     public static void main(String[] args) throws Exception {
-        logStart.info("Start...");
+        log.info("Start...");
         Tomcat tomcat = new Tomcat();
         readPasswordArgIfSet(args);
         tomcat.setPort(getPort(args));
@@ -31,7 +30,8 @@ public class Application {
         tomcat.getConnector().setMaxPostSize(100);
         tomcat.getConnector().setAllowTrace(false);
         tomcat.getServer().addLifecycleListener(lifecycleEvent -> {
-            //System.out.println("lifecycleEvent = " + lifecycleEvent);
+            System.out.println("lifecycleEvent = " + lifecycleEvent.getType());
+            System.out.println("lifecycleEvent = " + lifecycleEvent.getData());
         });
         rootCtx.addServletMappingDecoded("/", "main");
         tomcat.start();
@@ -47,7 +47,7 @@ public class Application {
 
     public static void sleep1Min() {
         try {
-            Thread.sleep(60 * 1000);
+            Thread.sleep(60_000);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }

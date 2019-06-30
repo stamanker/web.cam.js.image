@@ -13,8 +13,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * User: maxz
@@ -25,10 +26,10 @@ public class WebCamManager {
     private static final Logger log = LoggerFactory.getLogger(WebCamManager.class);
 
     private Webcam webcam;
-    private WebcamMotionListener listener;
-    private static WebCamManager INSTANCE;
+    private static volatile WebCamManager INSTANCE;
 
-    public byte[] imageFromCam; // synchronization or something required
+    public AtomicReference<byte[]> image = new AtomicReference<>();
+    private ExecutorService executorService = Executors.newFixedThreadPool(5);
 
     Dimension[] nonStandardResolutions = new Dimension[]{
             new Dimension(640, 480),
@@ -58,42 +59,60 @@ public class WebCamManager {
         webcam.setCustomViewSizes(nonStandardResolutions);
 //        webcam.setViewSize(WebcamResolution.HD720.getSize());
 //        webcam.setViewSize(WebcamResolution.SVGA.getSize());
-        webcam.setViewSize(new Dimension(640, 480));
+        for (int i = 0; i < 2; i++) {
+            try {
+                webcam.setViewSize(new Dimension(640, 480));
+                break;
+            } catch (Exception e) {
+                webcam.close();
+            }
+        }
         webcam.open();
 
-        WebcamMotionDetector detector = new WebcamMotionDetector(Webcam.getDefault());
-        detector.setInterval(1_000); // one check per xxx ms
-        listener = webcamMotionEvent -> {
-                takeImage();
-        };
-        detector.addMotionListener(listener);
-        detector.start();
+//        WebcamMotionDetector detector = new WebcamMotionDetector(Webcam.getDefault());
+//        detector.setInterval(100); //100 is minimum
+//        WebcamMotionListener listener = event -> takeImage();
+//        detector.addMotionListener(listener);
+//        System.out.println(detector.getMaxMotionPoints());
+//        detector.setMaxMotionPoints(10);
+//        detector.start();
 
         // --- auto save picture
-//        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
-//        executorService.scheduleWithFixedDelay(this::takeImage, 0, 400, TimeUnit.MILLISECONDS);
+        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+        executorService.scheduleWithFixedDelay(this::takeImage, 0, 150, TimeUnit.MILLISECONDS);
     }
 
     private void takeImage() {
         try {
+            long start = System.currentTimeMillis();
             BufferedImage photo = webcam.getImage();
-            imageFromCam = getPicAsBytes(photo);
-            File pixMainDir = new File("pix");
-            if(!pixMainDir.exists()) {
-                pixMainDir.mkdir();
-            }
-            String subDir = "pix/" + DateUtils.getCurrentHour() + "/";
-            File file = new File(subDir);
-            if(!file.exists()) {
-                file.mkdir();
-            }
-            Files.write(
-                    Paths.get(subDir + DateUtils.getCurrentDateTime()+".jpg"),
-                    imageFromCam,
-                    StandardOpenOption.CREATE_NEW, StandardOpenOption.CREATE, StandardOpenOption.WRITE
-            );
+//            System.out.println("*** WebCamManager.takeImage1 took " + String.format("%,3d", System.currentTimeMillis() - start));
+            executorService.execute(() -> {
+                try {
+                    byte[] picAsBytes = getPicAsBytes(photo);
+                    image.set(picAsBytes);
+//                    System.out.println("*** WebCamManager.takeImage3 took " + String.format("%,3d", System.currentTimeMillis() - start));
+//                    File pixMainDir = new File("pix");
+//                    if (!pixMainDir.exists()) {
+//                        pixMainDir.mkdir();
+//                    }
+//                    String subDir = "pix/" + DateUtils.getCurrentHour() + "/";
+//                    File file = new File(subDir);
+//                    if (!file.exists()) {
+//                        file.mkdir();
+//                    }
+//                    Files.write(
+//                            Paths.get(subDir + DateUtils.getCurrentDateTime() + ".jpg"),
+//                            picAsBytes,
+//                            StandardOpenOption.CREATE_NEW, StandardOpenOption.CREATE, StandardOpenOption.WRITE
+//                    );
+                } catch (Exception e) {
+                    log.error("Error: " + e.getMessage(), e);
+                }
+                System.out.println("*** WebCamManager.takeImageX took " + String.format("%,3d", System.currentTimeMillis() - start));
+            });
         } catch (Exception e) {
-            log.error("Error: " + e.getMessage(), e);
+            log.error("Error: " + e.getMessage());
         }
     }
 
