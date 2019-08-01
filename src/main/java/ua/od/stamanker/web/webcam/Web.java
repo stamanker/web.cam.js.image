@@ -25,7 +25,7 @@ public class Web extends HttpServlet {
     private static Set<String> banned = new HashSet<>(Arrays.asList(
             "185.130.5.224", "38.89.139.16", "217.160.128.25", "123.56.108.130", "118.98.104.21",
             "115.230.124.164", "80.82.64.68"
-        )
+    )
     );
 
     @Override
@@ -42,8 +42,8 @@ public class Web extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        if(!req.getRemoteAddr().equals("0:0:0:0:0:0:0:1")) {
-            log.info(req.getMethod() + " " + req.getRequestURI() + " from " + req.getRemoteAddr() + ", UserAgent = '" + req.getHeader("USER-AGENT")+"'");
+        if (!req.getRemoteAddr().equals("0:0:0:0:0:0:0:1")) {
+            log.info(req.getMethod() + " " + req.getRequestURI() + " from " + req.getRemoteAddr() + ", UserAgent = '" + req.getHeader("USER-AGENT") + "'");
         }
         try (ServletOutputStream outputStream = resp.getOutputStream()) {
             checkBan(req);
@@ -94,29 +94,29 @@ public class Web extends HttpServlet {
 
     private String getPage() {
         return
-        "<html>" +
-        "<head><meta keywords='webcam'><title>webcam::</title>" +
+                "<html>" +
+                        "<head><meta keywords='webcam'><title>webcam::</title>" +
 //                "<meta http-equiv='refresh' content=\"1;url='/'\"/>" +
-        "</head>" +
-        "<body bgcolor='black'>" +
-        "<img src='/?image' id='img'>" +
-        "<script>" +
-        "   var number = 0;\n" +
-        "   var newImage = new Image();\n" +
-        "   newImage.src = \"/?image\";\n" +
-        "   function updateImage() {\n" +
-        "       if(newImage.complete) {\n" +
-        "           document.getElementById(\"img\").src = newImage.src;\n" +
-        "           number++;" +
-        "           newImage = new Image();\n" +
-        "           newImage.src = '/?image&n='+number;\n" +
-        "           console.log('=' + newImage.src);" +
-        "       }\n" +
-        "       setTimeout(updateImage, 300);\n" +
-        "   }" +
-        "   updateImage();" +
-        "</script>" +
-        "</body>" +
-        "</html>";
+                        "</head>" +
+                        "<body bgcolor='black'>" +
+                        "<img src='/?image' id='img'>" +
+                        "<script>" +
+                        "   var number = 0;\n" +
+                        "   var newImage = new Image();\n" +
+                        "   newImage.src = \"/?image\";\n" +
+                        "   function updateImage() {\n" +
+                        "       if(newImage.complete) {\n" +
+                        "           document.getElementById(\"img\").src = newImage.src;\n" +
+                        "           number++;" +
+                        "           newImage = new Image();\n" +
+                        "           newImage.src = '/?image&n='+number;\n" +
+                        "           console.log('=' + newImage.src);" +
+                        "       }\n" +
+                        "       setTimeout(updateImage, 300);\n" +
+                        "   }" +
+                        "   updateImage();" +
+                        "</script>" +
+                        "</body>" +
+                        "</html>";
     }
 }

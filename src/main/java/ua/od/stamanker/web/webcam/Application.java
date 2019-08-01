@@ -31,16 +31,15 @@ public class Application {
         tomcat.getConnector().setAllowTrace(false);
         tomcat.getServer().addLifecycleListener(lifecycleEvent -> {
             System.out.println("lifecycleEvent = " + lifecycleEvent.getType());
-            System.out.println("lifecycleEvent = " + lifecycleEvent.getData());
         });
         rootCtx.addServletMappingDecoded("/", "main");
         tomcat.start();
         new Thread(() -> {
             do {
-                long freemMemory = Runtime.getRuntime().freeMemory();
-                log.info("free memory: " + String.format("%,03d", freemMemory));
+                long freeMemory = Runtime.getRuntime().freeMemory();
+                log.info("free memory: " + String.format("%,03d", freeMemory));
                 Application.sleep1Min();
-            } while(!Thread.currentThread().isInterrupted());
+            } while (!Thread.currentThread().isInterrupted());
         }).start();
         tomcat.getServer().await();
     }
@@ -55,7 +54,7 @@ public class Application {
 
     private static int getPort(String... args) {
         int ret;
-        if(args.length==0) {
+        if (args.length == 0) {
             ret = 8080;
         } else {
             ret = Integer.parseInt(args[0]);
@@ -65,7 +64,7 @@ public class Application {
     }
 
     private static void readPasswordArgIfSet(String... args) {
-        if(args.length>=2) {
+        if (args.length >= 2) {
             password = args[1];
         }
         log.info("password = " + password);

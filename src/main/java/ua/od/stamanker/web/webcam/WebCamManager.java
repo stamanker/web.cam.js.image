@@ -55,7 +55,7 @@ public class WebCamManager {
         for (Webcam webcam : webcams) {
             log.info("cam = " + webcam);
         }
-        webcam = webcams.get(webcams.size()-1);
+        webcam = webcams.get(webcams.size() - 1);
         webcam.setCustomViewSizes(nonStandardResolutions);
 //        webcam.setViewSize(WebcamResolution.HD720.getSize());
 //        webcam.setViewSize(WebcamResolution.SVGA.getSize());
