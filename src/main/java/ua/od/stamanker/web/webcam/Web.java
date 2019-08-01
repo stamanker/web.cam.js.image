@@ -11,9 +11,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
+import static java.util.Arrays.*;
 
 /**
  * User: maxz
@@ -22,7 +23,7 @@ import java.util.Set;
 public class Web extends HttpServlet {
 
     private static final Logger log = LoggerFactory.getLogger(Web.class);
-    private static Set<String> banned = new HashSet<>(Arrays.asList(
+    private static Set<String> banned = new HashSet<>(asList(
             "185.130.5.224", "38.89.139.16", "217.160.128.25", "123.56.108.130", "118.98.104.21",
             "115.230.124.164", "80.82.64.68"
     )
@@ -46,7 +47,7 @@ public class Web extends HttpServlet {
             log.info(req.getMethod() + " " + req.getRequestURI() + " from " + req.getRemoteAddr() + ", UserAgent = '" + req.getHeader("USER-AGENT") + "'");
         }
         try (ServletOutputStream outputStream = resp.getOutputStream()) {
-            checkBan(req);
+            checkBanned(req);
             if (req.getParameter("image") != null) {
                 resp.addHeader("Content-type", "image/jpeg");
                 byte[] imageFromCam = WebCamManager.getInstance().image.get();
@@ -85,7 +86,7 @@ public class Web extends HttpServlet {
         resp.addHeader("Cache-control", "no-cache, max-age=0, must-revalidate");
     }
 
-    private void checkBan(HttpServletRequest req) {
+    private void checkBanned(HttpServletRequest req) {
         if (banned.contains(req.getRemoteAddr())) {
             log.info("BANNED: " + req.getRemoteAddr());
             throw new WCException(HttpServletResponse.SC_BAD_REQUEST);
@@ -95,8 +96,10 @@ public class Web extends HttpServlet {
     private String getPage() {
         return
                 "<html>" +
-                        "<head><meta keywords='webcam'><title>webcam::</title>" +
-//                "<meta http-equiv='refresh' content=\"1;url='/'\"/>" +
+                        "<head>" +
+                        "<meta keywords='webcam'>" +
+                        "<title>webcam::</title>" +
+//                      "<meta http-equiv='refresh' content=\"1;url='/'\"/>" +
                         "</head>" +
                         "<body bgcolor='black'>" +
                         "<img src='/?image' id='img'>" +
@@ -109,10 +112,10 @@ public class Web extends HttpServlet {
                         "           document.getElementById(\"img\").src = newImage.src;\n" +
                         "           number++;" +
                         "           newImage = new Image();\n" +
-                        "           newImage.src = '/?image&n='+number;\n" +
+                        "           newImage.src = '/?image&n='+ number;\n" +
                         "           console.log('=' + newImage.src);" +
                         "       }\n" +
-                        "       setTimeout(updateImage, 300);\n" +
+                        "       setTimeout(updateImage, 200);\n" +
                         "   }" +
                         "   updateImage();" +
                         "</script>" +
