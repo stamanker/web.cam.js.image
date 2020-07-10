@@ -43,15 +43,6 @@ public class DesktopApp {
         return this;
     }
 
-    private AsynchronousServerSocketChannel openConnection() {
-        try {
-            return AsynchronousServerSocketChannel.open();
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
-    }
-
-
     public static void main(String[] args) throws InterruptedException {
         DesktopApp desktopApp = new DesktopApp().init();
         while (true) {
