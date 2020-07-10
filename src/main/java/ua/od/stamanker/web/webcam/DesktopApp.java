@@ -8,21 +8,14 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class DesktopApp {
 
-    WebCamManager webCamManager;
-
-    private DesktopApp init() {
-        webCamManager = WebCamManager.getInstance();
-        return this;
-    }
-
     public DesktopApp process() {
-        AtomicReference<byte[]> image = webCamManager.image;
-        if (image.get() == null) {
-            System.out.println("No data");
-            return this;
-        }
         Socket socket = new Socket();
         try {
+            AtomicReference<byte[]> image = WebCamManager.getInstance().image;
+            if (image.get() == null) {
+                System.out.println("No data");
+                return this;
+            }
             socket.connect(new InetSocketAddress("", 8081));
             socket.setTcpNoDelay(true);
             try (OutputStream outputStream = socket.getOutputStream()) {
@@ -44,7 +37,7 @@ public class DesktopApp {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        DesktopApp desktopApp = new DesktopApp().init();
+        DesktopApp desktopApp = new DesktopApp();
         while (true) {
             desktopApp.process();
             Thread.sleep(2_000);
