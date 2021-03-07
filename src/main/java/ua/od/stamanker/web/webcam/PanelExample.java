@@ -12,10 +12,6 @@ import java.util.ArrayList;
 public class PanelExample {
 
         public static void main(String[] args) {
-
-            ArrayList l = new ArrayList();
-            l.remove(1);
-
             final Webcam webcam = Webcam.getDefault();
             webcam.setViewSize(WebcamResolution.VGA.getSize());
 

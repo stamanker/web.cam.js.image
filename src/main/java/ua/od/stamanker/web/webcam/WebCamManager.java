@@ -4,7 +4,12 @@ import com.github.sarxos.webcam.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
+import javax.imageio.stream.FileImageOutputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -13,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -25,11 +31,11 @@ public class WebCamManager {
 
     private static final Logger log = LoggerFactory.getLogger(WebCamManager.class);
 
-    private Webcam webcam;
+    private final List<Webcam> webcams = new LinkedList<>();
     private static volatile WebCamManager INSTANCE;
 
     public AtomicReference<byte[]> image = new AtomicReference<>();
-    private ExecutorService executorService = Executors.newFixedThreadPool(5);
+    private final ExecutorService executorService = Executors.newFixedThreadPool(5);
 
     Dimension[] nonStandardResolutions = new Dimension[]{
             new Dimension(640, 480),
@@ -51,26 +57,35 @@ public class WebCamManager {
     }
 
     private WebCamManager() {
-        List<Webcam> webcams = Webcam.getWebcams();
-        for (Webcam webcam : webcams) {
+        List<Webcam> webcamsLocal = Webcam.getWebcams();
+        for (Webcam webcam : webcamsLocal) {
             log.info("cam = " + webcam);
-        }
-        webcam = webcams.get(webcams.size() - 1);
-        webcam.setCustomViewSizes(nonStandardResolutions);
+            System.out.println("webcam = " + webcam);
+//            if (webcam.getName().startsWith("HP ")) {
+//                System.out.println("ignore " + webcam.getName());
+//                continue;
+//            }
+            if (!webcam.getName().startsWith("HD Web Camera")) {
+                System.out.println("ignore " + webcam.getName());
+                continue;
+            }
+            webcams.add(webcam);
+            webcam.setCustomViewSizes(nonStandardResolutions);
+            for (int i = 0; i < 2; i++) {
+                try {
 //        webcam.setViewSize(WebcamResolution.HD720.getSize());
 //        webcam.setViewSize(WebcamResolution.SVGA.getSize());
-        for (int i = 0; i < 2; i++) {
-            try {
-                webcam.setViewSize(new Dimension(640, 480));
-                break;
-            } catch (Exception e) {
-                webcam.close();
+                    webcam.setViewSize(new Dimension(640, 480));
+                    break;
+                } catch (Exception e) {
+                    webcam.close();
+                }
             }
+            webcam.open();
         }
-        webcam.open();
 
 //        WebcamMotionDetector detector = new WebcamMotionDetector(Webcam.getDefault());
-//        detector.setInterval(100); //100 is minimum
+//        detector.setInterval(500); //100 is minimum
 //        WebcamMotionListener listener = event -> takeImage();
 //        detector.addMotionListener(listener);
 //        System.out.println(detector.getMaxMotionPoints());
@@ -78,15 +93,35 @@ public class WebCamManager {
 //        detector.start();
 
         // --- auto save picture
-        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
-        executorService.scheduleWithFixedDelay(this::takeImage, 0, 150, TimeUnit.MILLISECONDS);
+//        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+//        executorService.scheduleWithFixedDelay(this::takeImage, 0, 800, TimeUnit.MILLISECONDS);
+    }
+
+    private long switchTime = System.currentTimeMillis();
+    private int switchMe = 0;
+
+    public byte[] getImage() {
+        try {
+//            if (System.currentTimeMillis() - switchTime > 5_000) {
+//                switchMe = (++switchMe) % 2;
+//                switchTime = System.currentTimeMillis();
+//            }
+//            if (switchMe == 0) {
+                return getPicAsBytes(webcams.get(0).getImage());
+//            } else {
+//                return getPicAsBytes(webcams.get(1).getImage());
+//            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private void takeImage() {
         try {
             long start = System.currentTimeMillis();
-            BufferedImage photo = webcam.getImage();
-//            System.out.println("*** WebCamManager.takeImage1 took " + String.format("%,3d", System.currentTimeMillis() - start));
+            BufferedImage photo = webcams.get(0).getImage();
+            System.out.println("*** WebCamManager.takeImage1 took " + String.format("%,3d", System.currentTimeMillis() - start));
             executorService.execute(() -> {
                 try {
                     byte[] picAsBytes = getPicAsBytes(photo);
@@ -109,7 +144,7 @@ public class WebCamManager {
                 } catch (Exception e) {
                     log.error("Error: " + e.getMessage(), e);
                 }
-                System.out.println("*** WebCamManager.takeImageX took " + String.format("%,3d", System.currentTimeMillis() - start));
+                //System.out.println("*** WebCamManager.takeImageX took " + String.format("%,3d", System.currentTimeMillis() - start));
             });
         } catch (Exception e) {
             log.error("Error: " + e.getMessage());
@@ -117,11 +152,19 @@ public class WebCamManager {
     }
 
     private byte[] getPicAsBytes(BufferedImage photo) throws IOException {
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            ImageIO.write(photo, "jpg", baos);
-            baos.flush();
-            return baos.toByteArray();
-        }
+        JPEGImageWriteParam jpegParams = new JPEGImageWriteParam(null);
+        jpegParams.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+        jpegParams.setCompressionQuality(0.7f);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//            ImageIO.write(photo, "jpg", baos);
+        final ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
+        // specifies where the jpg image has to be written
+        writer.setOutput(ImageIO.createImageOutputStream(baos));
+        // writes the file with given compression level
+        // from your JPEGImageWriteParam instance
+        writer.write(null, new IIOImage(photo, null, null), jpegParams);
+        return baos.toByteArray();
     }
 
 }
